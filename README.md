@@ -1,2 +1,2 @@
 # ashell
-Just a shell made with python
+Just a toy shell made with python
