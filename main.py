@@ -17,7 +17,7 @@ def find_exec(cmd: str, *_) -> tuple:
     return f"{cmd}: not found", None
 
 
-def run_exec(user_input: list) -> int:
+def run_exec(user_input: list) -> int: #has side effects, prints the result
     '''runs an executable located in system path'''
     message, where_exist = find_exec(user_input[0])
 
@@ -31,20 +31,37 @@ def run_exec(user_input: list) -> int:
             print(output.stderr, end='', file=sys.stderr)
         return output.returncode
 
-
-
     print(message)
+
+
+def cd_builtin(args=None):
+    try:
+        if args[0] == '~':
+            os.chdir(os.getenv('HOME'))
+            return
+        os.chdir(args[0])
+    except IndexError:
+        os.chdir(os.getenv('HOME'))
+    except:
+        print(f"cd: {args[0]}: No such file or directory")
+
+
+
+
+
+BUILTINS = {
+        'exit': lambda *_: sys.exit(),
+        'echo': lambda args: print(' '.join(args)),
+        'pwd' : lambda *_: print(os.getcwd()),
+        'cd'  : cd_builtin,
+        'type': lambda cmd: print(f"{cmd[0]} is a shell builtin" if cmd[0] in BUILTINS
+                                  else find_exec(cmd[0])[0]),
+        }
 
 
 
 def main():
-
-    BUILT_INS = {
-        'exit': lambda *_: sys.exit(),
-        'echo': lambda args: print(' '.join(args)),
-        'type': lambda cmd: print( f"{cmd[0]} is a shell builtin" if cmd[0] in BUILT_INS
-                                  else find_exec(cmd[0])[0]),
-        }
+    global BUILTINS
 
 
 
@@ -61,8 +78,8 @@ def main():
         args = prompted[1:]
 
 
-        if cmd in BUILT_INS:
-            BUILT_INS[cmd](args)
+        if cmd in BUILTINS:
+            BUILTINS[cmd](args)
             continue
         run_exec(prompted)
 
