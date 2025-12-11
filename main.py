@@ -1,5 +1,39 @@
 import sys,os, subprocess
 
+def handle_input(usr_str):
+   if len(usr_str) == 0:
+      return []
+
+   usr_str = usr_str.replace("''","").replace('""','')
+
+
+   if usr_str.startswith("'"):
+      result = []
+      first, *rest = usr_str[1:].split("'",1)
+      rest = ' '.join(rest).lstrip()
+      result = result + [first]
+      result.extend(handle_input(rest))
+      return result
+
+   if usr_str.startswith('"'):
+      result = []
+      first, *rest = usr_str[1:].split('"',1)
+      rest = ' '.join(rest).lstrip()
+      result = result + [first]
+      result.extend(handle_input(rest))
+      return result
+
+   if ' ' in usr_str:
+      result = []
+      first, *rest = usr_str.split(' ',1)
+      rest = ' '.join(rest).lstrip()
+      result = result + [first]
+      result.extend(handle_input(rest))
+      return result
+
+   return [usr_str]
+
+
 
 def find_exec(cmd: str, *_) -> tuple:
     ''' return (where_exist?, path_to_the_file) in the system path'''
@@ -68,9 +102,12 @@ def main():
 
     while True:
 
-        sys.stdout.write("$ ")
 
-        prompted = input().strip().split()
+        sys.stdout.write("$ ")
+        prompted = handle_input(input())
+
+
+
         if not prompted:
             continue
 
