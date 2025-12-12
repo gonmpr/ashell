@@ -1,42 +1,7 @@
-import sys,os, subprocess
-
-def handle_input(usr_str):
-   if len(usr_str) == 0:
-      return []
-
-   usr_str = usr_str.replace("''","").replace('""','')
-
-
-   if usr_str.startswith("'"):
-      result = []
-      first, *rest = usr_str[1:].split("'",1)
-      rest = ' '.join(rest).lstrip()
-      result = result + [first]
-      result.extend(handle_input(rest))
-      return result
-
-   if usr_str.startswith('"'):
-      result = []
-      first, *rest = usr_str[1:].split('"',1)
-      rest = ' '.join(rest).lstrip()
-      result = result + [first]
-      result.extend(handle_input(rest))
-      return result
-
-   if ' ' in usr_str:
-      result = []
-      first, *rest = usr_str.split(' ',1)
-      rest = ' '.join(rest).lstrip()
-      result = result + [first]
-      result.extend(handle_input(rest))
-      return result
-
-   return [usr_str]
-
-
+import sys,os, subprocess, shlex
 
 def find_exec(cmd: str, *_) -> tuple:
-    ''' return (where_exist?, path_to_the_file) in the system path'''
+    ''' return (where_exist?, path_to_the_file) so i can use it with run_exec'''
 
     paths = os.environ.get('PATH', '').split(os.pathsep)
 
@@ -48,14 +13,20 @@ def find_exec(cmd: str, *_) -> tuple:
 
         if os.path.isfile(cmd_path) and os.access(cmd_path, os.X_OK):
             return f"{cmd} is {cmd_path}", cmd_path
-    return f"{cmd}: not found", None
+
+
+    return f"{cmd}: not found", False
+
+
+
+
 
 
 def run_exec(user_input: list) -> int: #has side effects, prints the result
     '''runs an executable located in system path'''
-    message, where_exist = find_exec(user_input[0])
+    message, exist = find_exec(user_input[0])
 
-    if where_exist is not None:
+    if exist:
 
 
         output = subprocess.run(user_input, capture_output=True, text=True)
@@ -104,12 +75,13 @@ def main():
 
 
         sys.stdout.write("$ ")
-        prompted = handle_input(input())
-
+        prompted = shlex.split(input())
 
 
         if not prompted:
             continue
+
+
 
         cmd = prompted[0]
         args = prompted[1:]
@@ -118,7 +90,14 @@ def main():
         if cmd in BUILTINS:
             BUILTINS[cmd](args)
             continue
+
+
+
         run_exec(prompted)
+
+
+
+
 
 
 
